@@ -220,6 +220,7 @@
             background: var(--navy); color: var(--white);
             padding: 6px 16px; border-radius: 20px; font-size: 0.85rem;
             font-weight: 600; margin-bottom: 16px;
+            transition: background 0.3s, transform 0.2s;
         }
         .culture-counter .dot {
             width: 8px; height: 8px; border-radius: 50%;
@@ -336,8 +337,8 @@
             <!-- Contact -->
             <div class="info-box amber">
                 <h3>📞 Questions or Concerns?</h3>
-                <p><strong>Debra Alexander:</strong> (757) 305-7913 | <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="dfbbbeb3baa7beb1bbbaad9fbeb3baa7beb1bbbaadbebcabacf1bcb0b2">[email&#160;protected]</a></p>
-                <p style="margin-top:4px;"><strong>Geo Bowersmith:</strong> (202) 297-6378 | <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="7017151f5e121f071502031d19041830171d11191c5e131f1d">[email&#160;protected]</a></p>
+                <p><strong>Debra Alexander:</strong> (757) 305-7913 &nbsp;|&nbsp; dalexander@alexanderacts.com</p>
+                <p style="margin-top:4px;"><strong>Geo Bowersmith:</strong> (202) 297-6378 &nbsp;|&nbsp; geo.bowersmith@gmail.com</p>
             </div>
 
             <!-- ── PART I: DEMOGRAPHICS ── -->
@@ -469,7 +470,7 @@
 
 </div><!-- /.wrap -->
 
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+<script>
 // ═══════════════════════════════════════
 //  *** PASTE YOUR GOOGLE SCRIPT URL HERE ***
 // ═══════════════════════════════════════
@@ -574,14 +575,30 @@ function buildCultureGrid(containerId, selectedArr, counterId) {
 
 function handleCulture(cb, arr, counterId, label) {
     if (cb.checked) {
-        if (arr.length >= 10) { cb.checked = false; showBanner('You can only select up to 10 descriptors.', 'error'); return; }
+        if (arr.length >= 10) {
+            cb.checked = false;
+            // Flash the counter red to show the limit
+            const counter = document.getElementById(counterId);
+            counter.style.background = '#c0392b';
+            counter.style.transform = 'scale(1.1)';
+            counter.textContent = '⛔ Maximum 10 reached!';
+            setTimeout(() => {
+                counter.style.background = '';
+                counter.style.transform = '';
+                counter.textContent = `10 of 10 selected`;
+            }, 2000);
+            return;
+        }
         arr.push(cb.value);
         label.classList.add('selected');
     } else {
         arr.splice(arr.indexOf(cb.value), 1);
         label.classList.remove('selected');
     }
-    document.getElementById(counterId).textContent = `${arr.length} of 10 selected`;
+    const counter = document.getElementById(counterId);
+    counter.textContent = `${arr.length} of 10 selected`;
+    // Turn counter green when exactly 10 selected
+    counter.style.background = arr.length === 10 ? 'var(--green)' : '';
 }
 
 buildCultureGrid('currentCulture', currentSelected, 'currentCounter');
