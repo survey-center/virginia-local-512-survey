@@ -336,7 +336,7 @@
 
             <!-- Contact -->
             <div class="info-box amber">
-                <h3>📞 Questions or Concerns?</h3>
+                <h3>&#128222; Questions or Concerns?</h3>
                 <p><strong>Debra Alexander:</strong> (757) 305-7913 &nbsp;|&nbsp; dalexander@alexanderacts.com</p>
                 <p style="margin-top:4px;"><strong>Geo Bowersmith:</strong> (202) 297-6378 &nbsp;|&nbsp; geo.bowersmith@gmail.com</p>
             </div>
@@ -471,13 +471,15 @@
 </div><!-- /.wrap -->
 
 <script>
-// ═══════════════════════════════════════
-//  *** PASTE YOUR GOOGLE SCRIPT URL HERE ***
-// ═══════════════════════════════════════
-const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzwVfxnn1A5WMkeedhVO8In5CZBzy37N6sBOc0BmxVu6DlZQTfNladODOiCz8VUEmS2/exec'; // ← Paste your Google Apps Script Web App URL here
-// Example: 'https://script.google.com/macros/s/AKfycbxxxxxx/exec'
+// ═══════════════════════════════════════════════════════
+//  FORMSPREE SETUP — paste your Form ID below
+//  1. Go to formspree.io → sign up free
+//  2. Click + New Form → copy the Form ID (e.g. xpwzabcd)
+//  3. Replace YOUR_FORM_ID_HERE with your ID
+// ═══════════════════════════════════════════════════════
+const FORMSPREE_ID = 'meerkjrk';
 
-// ── DATA ──
+// ── DATA ──────────────────────────────────────────────
 const engageQuestions = [
     'I know what is expected of me at work.',
     'I have the materials and equipment I need to do my work right.',
@@ -533,40 +535,40 @@ const sectionCStatements = [
     { key: 'c8', text: 'There is a good working relationship between management and staff.' }
 ];
 
-// ── SELECTION STATE ──
+// ── STATE ─────────────────────────────────────────────
 let currentSelected = [];
 let desiredSelected = [];
 
-// ── BUILD ENGAGEMENT QUESTIONS ──
+// ── BUILD ENGAGEMENT QUESTIONS ────────────────────────
 const engContainer = document.getElementById('engagementQuestions');
 engageQuestions.forEach((q, i) => {
     const num = i + 1;
     const div = document.createElement('div');
     div.className = 'qcard';
-    div.id = `qcard-engage${num}`;
-    div.innerHTML = `
-        <div class="qlabel">${num}. ${q}</div>
-        <div class="likert" id="likert${num}">
-            ${[['1','Strongly Disagree'],['2','Disagree'],['3','Neither Agree nor Disagree'],['4','Agree'],['5','Strongly Agree']].map(([v,l]) => `
-            <label class="likert-item" id="lopt${num}_${v}">
-                <input type="radio" name="engage${num}" value="${v}">
-                <span>${l}</span>
-            </label>`).join('')}
-        </div>`;
+    div.id = 'qcard-engage' + num;
+    div.innerHTML =
+        '<div class="qlabel">' + num + '. ' + q + '</div>' +
+        '<div class="likert" id="likert' + num + '">' +
+        [['1','Strongly Disagree'],['2','Disagree'],['3','Neither Agree nor Disagree'],['4','Agree'],['5','Strongly Agree']].map(function(pair) {
+            return '<label class="likert-item" id="lopt' + num + '_' + pair[0] + '">' +
+                   '<input type="radio" name="engage' + num + '" value="' + pair[0] + '">' +
+                   '<span>' + pair[1] + '</span></label>';
+        }).join('') + '</div>';
     engContainer.appendChild(div);
 });
 
-// ── BUILD CULTURE GRIDS ──
+// ── BUILD CULTURE GRIDS ───────────────────────────────
 function buildCultureGrid(containerId, selectedArr, counterId) {
     const container = document.getElementById(containerId);
-    cultureDescriptors.forEach(d => {
+    cultureDescriptors.forEach(function(d) {
         const label = document.createElement('label');
         label.className = 'c-item';
-        label.setAttribute('data-val', d);
         const cb = document.createElement('input');
         cb.type = 'checkbox';
         cb.value = d;
-        cb.addEventListener('change', () => handleCulture(cb, selectedArr, counterId, label));
+        cb.addEventListener('change', function() {
+            handleCulture(cb, selectedArr, counterId, label);
+        });
         label.appendChild(cb);
         label.appendChild(document.createTextNode(d));
         container.appendChild(label);
@@ -577,57 +579,58 @@ function handleCulture(cb, arr, counterId, label) {
     if (cb.checked) {
         if (arr.length >= 10) {
             cb.checked = false;
-            // Flash the counter red to show the limit
             const counter = document.getElementById(counterId);
+            const prev = counter.textContent;
             counter.style.background = '#c0392b';
-            counter.style.transform = 'scale(1.1)';
-            counter.textContent = '⛔ Maximum 10 reached!';
-            setTimeout(() => {
+            counter.style.transform = 'scale(1.08)';
+            counter.textContent = 'Maximum 10 reached!';
+            setTimeout(function() {
                 counter.style.background = '';
                 counter.style.transform = '';
-                counter.textContent = `10 of 10 selected`;
-            }, 2000);
+                counter.textContent = '10 of 10 selected';
+            }, 2200);
             return;
         }
         arr.push(cb.value);
         label.classList.add('selected');
     } else {
-        arr.splice(arr.indexOf(cb.value), 1);
+        const idx = arr.indexOf(cb.value);
+        if (idx > -1) arr.splice(idx, 1);
         label.classList.remove('selected');
     }
     const counter = document.getElementById(counterId);
-    counter.textContent = `${arr.length} of 10 selected`;
-    // Turn counter green when exactly 10 selected
+    counter.textContent = arr.length + ' of 10 selected';
     counter.style.background = arr.length === 10 ? 'var(--green)' : '';
 }
 
 buildCultureGrid('currentCulture', currentSelected, 'currentCounter');
 buildCultureGrid('desiredCulture', desiredSelected, 'desiredCounter');
 
-// ── BUILD SECTION C ──
+// ── BUILD SECTION C ───────────────────────────────────
 const scContainer = document.getElementById('sectionCItems');
-sectionCStatements.forEach(stmt => {
+sectionCStatements.forEach(function(stmt) {
     const label = document.createElement('label');
     label.className = 'opt-item';
-    label.innerHTML = `<input type="checkbox" name="sectionC" value="${stmt.key}"> ${stmt.text}`;
+    label.innerHTML = '<input type="checkbox" name="sectionC" value="' + stmt.key + '"> ' + stmt.text;
     scContainer.appendChild(label);
 });
 
-// ── RADIO / CHECKBOX VISUAL STATE ──
-document.addEventListener('change', e => {
+// ── VISUAL STATE FOR RADIO/CHECKBOX ──────────────────
+document.addEventListener('change', function(e) {
     if (e.target.type === 'radio') {
         const name = e.target.name;
-        document.querySelectorAll(`input[name="${name}"]`).forEach(r => {
-            r.closest('.opt-item, .likert-item').classList.remove('selected');
+        document.querySelectorAll('input[name="' + name + '"]').forEach(function(r) {
+            const el = r.closest('.opt-item') || r.closest('.likert-item');
+            if (el) el.classList.remove('selected');
         });
-        e.target.closest('.opt-item, .likert-item').classList.add('selected');
-        // Mark card answered
+        const closest = e.target.closest('.opt-item') || e.target.closest('.likert-item');
+        if (closest) closest.classList.add('selected');
         const card = e.target.closest('.qcard');
         if (card) card.classList.add('answered');
     }
 });
 
-// ── STATUS BANNER ──
+// ── BANNER ────────────────────────────────────────────
 function showBanner(msg, type) {
     const b = document.getElementById('statusBanner');
     b.className = 'status-banner ' + type;
@@ -635,8 +638,19 @@ function showBanner(msg, type) {
     b.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 
-// ── SUBMIT ──
+// ── HIGHLIGHT ERROR CARD ──────────────────────────────
+function highlight(id) {
+    const el = document.getElementById(id);
+    if (el) {
+        el.classList.add('error');
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        setTimeout(function() { el.classList.remove('error'); }, 3000);
+    }
+}
+
+// ── SUBMIT ────────────────────────────────────────────
 function submitSurvey() {
+
     // Validate demographics
     const role   = document.querySelector('input[name="role"]:checked');
     const tenure = document.querySelector('input[name="tenure"]:checked');
@@ -646,82 +660,102 @@ function submitSurvey() {
     // Validate engagement
     const engagement = {};
     for (let i = 1; i <= 12; i++) {
-        const ans = document.querySelector(`input[name="engage${i}"]:checked`);
-        if (!ans) { highlight(`qcard-engage${i}`); showBanner(`Please answer Engagement Question ${i} (Part II).`, 'error'); return; }
-        engagement[`question${i}`] = parseInt(ans.value);
+        const ans = document.querySelector('input[name="engage' + i + '"]:checked');
+        if (!ans) {
+            highlight('qcard-engage' + i);
+            showBanner('Please answer Engagement Question ' + i + ' (Part II).', 'error');
+            return;
+        }
+        engagement['question' + i] = parseInt(ans.value);
     }
 
-    // Validate culture
+    // Validate culture selections
     if (currentSelected.length !== 10) {
-        document.getElementById('currentCulture').scrollIntoView({ behavior:'smooth' });
-        showBanner(`Please select exactly 10 Current Culture descriptors. You have selected ${currentSelected.length}.`, 'error'); return;
+        document.getElementById('currentCulture').scrollIntoView({ behavior: 'smooth' });
+        showBanner('Please select exactly 10 Current Culture descriptors. You have selected ' + currentSelected.length + '.', 'error');
+        return;
     }
     if (desiredSelected.length !== 10) {
-        document.getElementById('desiredCulture').scrollIntoView({ behavior:'smooth' });
-        showBanner(`Please select exactly 10 Desired Culture descriptors. You have selected ${desiredSelected.length}.`, 'error'); return;
+        document.getElementById('desiredCulture').scrollIntoView({ behavior: 'smooth' });
+        showBanner('Please select exactly 10 Desired Culture descriptors. You have selected ' + desiredSelected.length + '.', 'error');
+        return;
     }
 
     // Collect Section C
     const sectionCData = {};
-    sectionCStatements.forEach(s => { sectionCData[s.key] = false; });
-    document.querySelectorAll('input[name="sectionC"]:checked').forEach(cb => {
+    sectionCStatements.forEach(function(s) { sectionCData[s.key] = false; });
+    document.querySelectorAll('input[name="sectionC"]:checked').forEach(function(cb) {
         sectionCData[cb.value] = true;
     });
 
-    // Build payload
-    const payload = {
-        submittedAt: new Date().toISOString(),
-        role: role.value,
-        tenure: tenure.value,
-        engagement,
-        currentCulture: [...currentSelected],
-        currentOther: document.querySelector('textarea[name="currentOther"]').value.trim(),
-        desiredCulture: [...desiredSelected],
-        desiredOther: document.querySelector('textarea[name="desiredOther"]').value.trim(),
-        sectionC: sectionCData,
-        sectionE: document.querySelector('textarea[name="sectionE"]').value.trim(),
-        sectionF: document.querySelector('textarea[name="sectionF"]').value.trim(),
-        sectionG: document.querySelector('textarea[name="sectionG"]').value.trim(),
-        sectionH: document.querySelector('textarea[name="sectionH"]').value.trim()
-    };
-
-    // Check if Google Script URL is configured
-    if (GOOGLE_SCRIPT_URL === 'PASTE_YOUR_GOOGLE_SCRIPT_URL_HERE') {
-        showBanner('⚠️ Setup required: Paste your Google Apps Script Web App URL into this file (line ~540).', 'error');
+    // Check Formspree ID
+    if (FORMSPREE_ID === 'YOUR_FORM_ID_HERE') {
+        showBanner('Setup needed: Please add your Formspree Form ID to this file. See instructions at the top.', 'error');
         return;
     }
 
+    // Build flat payload for Formspree
+    const payload = {
+        _subject:              'New Survey Response – Virginia Local 512',
+        submitted_at:          new Date().toISOString(),
+        role:                  role.value,
+        tenure:                tenure.value,
+        engage_q1:             engagement.question1,
+        engage_q2:             engagement.question2,
+        engage_q3:             engagement.question3,
+        engage_q4:             engagement.question4,
+        engage_q5:             engagement.question5,
+        engage_q6:             engagement.question6,
+        engage_q7:             engagement.question7,
+        engage_q8:             engagement.question8,
+        engage_q9:             engagement.question9,
+        engage_q10:            engagement.question10,
+        engage_q11:            engagement.question11,
+        engage_q12:            engagement.question12,
+        current_culture:       currentSelected.join(', '),
+        current_culture_other: document.querySelector('textarea[name="currentOther"]').value.trim(),
+        desired_culture:       desiredSelected.join(', '),
+        desired_culture_other: document.querySelector('textarea[name="desiredOther"]').value.trim(),
+        c1_perf_eval:          sectionCData.c1 ? 'Yes' : 'No',
+        c2_work_life:          sectionCData.c2 ? 'Yes' : 'No',
+        c3_comfort_supv:       sectionCData.c3 ? 'Yes' : 'No',
+        c4_culture_respect:    sectionCData.c4 ? 'Yes' : 'No',
+        c5_supv_support:       sectionCData.c5 ? 'Yes' : 'No',
+        c6_raise_concerns:     sectionCData.c6 ? 'Yes' : 'No',
+        c7_mgr_relation:       sectionCData.c7 ? 'Yes' : 'No',
+        c8_mgmt_staff:         sectionCData.c8 ? 'Yes' : 'No',
+        e_local_culture:       document.querySelector('textarea[name="sectionE"]').value.trim(),
+        f_your_experience:     document.querySelector('textarea[name="sectionF"]').value.trim(),
+        g_start_stop_cont:     document.querySelector('textarea[name="sectionG"]').value.trim(),
+        h_one_action:          document.querySelector('textarea[name="sectionH"]').value.trim()
+    };
+
+    // Submit to Formspree
     const btn = document.getElementById('submitBtn');
     btn.disabled = true;
-    btn.textContent = '⏳ Submitting…';
+    btn.textContent = 'Submitting...';
 
-    fetch(GOOGLE_SCRIPT_URL, {
+    fetch('https://formspree.io/f/' + FORMSPREE_ID, {
         method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
         body: JSON.stringify(payload)
     })
-    .then(() => {
-        document.getElementById('surveyForm').style.display = 'none';
-        document.getElementById('thankyou').style.display = 'block';
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+    .then(function(res) {
+        if (res.ok) {
+            document.getElementById('surveyForm').style.display = 'none';
+            document.getElementById('thankyou').style.display = 'block';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        } else {
+            return res.json().then(function(d) { throw new Error(d.error || 'Submission failed'); });
+        }
     })
-    .catch(() => {
+    .catch(function(err) {
         btn.disabled = false;
         btn.textContent = 'Submit Survey';
-        showBanner('There was an error submitting your survey. Please try again.', 'error');
+        showBanner('There was an error submitting. Please try again. (' + err.message + ')', 'error');
     });
-
 }
 
-function highlight(id) {
-    const el = document.getElementById(id);
-    if (el) {
-        el.classList.add('error');
-        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        setTimeout(() => el.classList.remove('error'), 3000);
-    }
-}
 </script>
 </body>
 </html>
